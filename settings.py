@@ -1,3 +1,5 @@
+import pygame
+
 class Settings:
     """存储设置"""
     def __init__(self):
@@ -8,3 +10,5 @@ class Settings:
         self.bg_color = (230,230,230)
         self.clock_tick = 60
 
+        #speed,使用小数会导致左右移动速度不同
+        self.ship_speed = 2.5
