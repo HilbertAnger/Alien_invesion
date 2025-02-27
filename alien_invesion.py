@@ -4,7 +4,8 @@ from settings import Settings
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
-
+from time import sleep
+from game_stats import GameStats
 
 class AlienInvesion:
     """manage game action and resource"""
@@ -12,8 +13,12 @@ class AlienInvesion:
         """init game and resource"""
         pygame.init()
 
+        self.game_active = True
+
         self.settings = Settings()
 
+        #创建一个存储游戏统计信息的实例
+        self.stats = GameStats(self)
 
         #设置帧率
         self.clock = pygame.time.Clock()
@@ -32,9 +37,14 @@ class AlienInvesion:
         """开始游戏的主循环"""
         while True:
             self._check_events()
-            self.ship.upgrade()
-            self._update_bullets()
-            self._update_aliens()
+
+            if self.game_active:
+                self.ship.upgrade()
+                self._update_bullets()
+                self._update_aliens()
+            else:
+                print('Game Over')
+                break
 
             self._upgrade_screen()
 
@@ -94,6 +104,17 @@ class AlienInvesion:
                 self.bullets.remove(bullet)
         # print(len(self.bullets))检验子弹是否消失
 
+        #检查子弹是否击中敌人
+        self._check_bullet_alien_collisions()
+
+
+    def _check_bullet_alien_collisions(self):
+        collections = pygame.sprite.groupcollide(self.bullets,self.aliens,True,True)
+        if not self.aliens:
+            #删除子弹并创建舰队
+            self.bullets.empty()
+            self._create_fleet()
+
     def _create_fleet(self):
         """创建外星人编队"""
         #创建一个外星人,不断添加，直到没有空间
@@ -141,7 +162,38 @@ class AlienInvesion:
         self._check_fleet_edges()
         self.aliens.update()
 
+        #检测外星人和飞船的碰撞
+        if pygame.sprite.spritecollideany(self.ship,self.aliens):
+            self._ship_hit()
 
+        self._check_aliens_bottom()
+
+    def _ship_hit(self):
+        """"""
+        if self.stats.ships_left >0:
+            #减一命
+            self.stats.ships_left -= 1
+
+            #清空外星人和子弹
+            self.bullets.empty()
+            self.aliens.empty()
+
+            #fleet
+            self._create_fleet()
+            self.ship.center_ship()
+
+            #
+            sleep(0.5)
+        else:
+            self.game_active = False
+
+
+    def _check_aliens_bottom(self):
+        """"""
+        for alien in self.aliens.sprites():
+            if alien.rect.bottom >=self.settings.screen_height:
+                self._ship_hit()
+                break
 
     def _upgrade_screen(self):
         """更新显示"""

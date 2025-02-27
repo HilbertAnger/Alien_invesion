@@ -23,6 +23,11 @@ class Ship:
         # 另存一个变量x将飞船坐标改为浮点数
         self.x = float(self.rect.x)
 
+    def center_ship(self):
+        """将飞船放在屏幕底部中央"""
+        self.rect.midbottom = self.screen_rect.midbottom
+        self.x = float(self.rect.x)
+
     def upgrade(self):
         """控制移动"""
         if self.moving_right and self.rect.right < self.screen_rect.right:
